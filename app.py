@@ -1,5 +1,10 @@
-"""This file instantiates a web page using Solara.
-This makes it possible to interact with the model and display some cool visualizations."""
+"""
+This file instantiates a web page using Solara.
+This makes it possible to interact with the model and display some cool visualizations.
+
+To initialize the app:
+    solara run app.py
+"""
 
 import math
 from mesa.visualization import Slider, SolaraViz, make_plot_component, make_space_component
@@ -20,7 +25,7 @@ def agent_portrayal(agent):
 This function also displays the ratio amount and number of infected remaining."""
 def get_resistant_susceptible_ratio(model):
     ratio = model.resistant_susceptible_ratio()
-    ratio_text = r"$infty$" if ratio is math.inf else f"{ratio:/2f}"
+    ratio_text = r"$infty$" if ratio is math.inf else f"{ratio:.2f}"
     infected_text = str(number_infected(model))
 
     return solara.Markdown(
@@ -43,7 +48,7 @@ model_params = {
         step=1
     ),
     "avg_node_degree": Slider(
-        label="Average Node Degree",
+        label="Avg Node Degree",
         value=3,
         min=3,
         max=8,
@@ -57,21 +62,28 @@ model_params = {
         step=1
     ),
     "virus_spread_chance": Slider(
-        label="Virus Spread Chance (Probability of Infection)",
+        label="Virus Spread Chance",
         value=0.4,
         min=0.0,
         max=1.0,
         step=0.1
     ),
     "virus_check_frequency": Slider(
-        label="Virus Check Frequency (How Often the Infection Situation is Assessed)",
+        label="Virus Check Frequency",
         value=0.4,
         min=0.0,
         max=1.0,
         step=0.1
     ),
+    "recovery_chance": Slider(
+        label="Recovery Chance",
+        value=0.3,
+        min=0.0,
+        max=1.0,
+        step=0.1
+    ),
     "gain_resistance_chance": Slider(
-        label="Gain Resistance Chance (Probability of gaining Resistance)",
+        label="Gain Resistance Chance",
         value=0.5,
         min=0.0,
         max=1.0,

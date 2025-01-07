@@ -1,4 +1,6 @@
-"""This file contains all the model classes needed for the SIR model."""
+"""
+This file contains all the model classes needed for the SIR model.
+"""
 
 import math
 import mesa
@@ -44,6 +46,8 @@ class VirusOnNetwork(Model):
         self.G = nx.erdos_renyi_graph(n=self.num_nodes, p=prob)
         self.grid = mesa.space.NetworkGrid(self.G)
 
+        self.initial_outbreak_size = (initial_outbreak_size if initial_outbreak_size <= num_nodes else num_nodes)
+
         self.virus_spread_chance = virus_spread_chance
         self.virus_check_frequency = virus_check_frequency
         self.recovery_chance = recovery_chance
@@ -54,7 +58,7 @@ class VirusOnNetwork(Model):
                 "Infected": number_infected,
                 "Susceptible": number_susceptible,
                 "Resistant": number_resistant,
-                "R to S ratio": self.resistant_suceptible_ratio
+                "R to S Ratio": self.resistant_susceptible_ratio
             }
         )
     
@@ -75,7 +79,7 @@ class VirusOnNetwork(Model):
         """Infect some of the agents added to the node."""
         infected_nodes = self.random.sample(list(self.G), self.initial_outbreak_size)
         # Randomly infect some of the agents based on the initial_outbreak_size
-        for a in self.grid.get_all_cell_contents(infected_nodes):
+        for a in self.grid.get_cell_list_contents(infected_nodes):
             a.state = State.INFECTED
         
         self.running = True

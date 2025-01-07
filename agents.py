@@ -1,4 +1,6 @@
-"""The file contains all the agent classes needed for the SIR model."""
+"""
+The file contains all the agent classes needed for the SIR model.
+"""
 
 from enum import Enum
 from mesa import Agent
@@ -30,7 +32,7 @@ class VirusAgent(Agent):
         # Define the properties of the agents
         self.virus_spread_chance = virus_spread_chance
         self.virus_check_frequency = virus_check_frequency
-        self.recover_chance = recovery_chance
+        self.recovery_chance = recovery_chance
         self.gain_resistance_chance = gain_resistance_chance
 
     """Define how SUSCEPTIBLE agents become INFECTED"""
@@ -62,7 +64,7 @@ class VirusAgent(Agent):
     """Define whether an agent is SUSCEPTIBLE or INFECTED based on recovery_chance metric"""
     def try_remove_infection(self):
         # If the recovery_chance of the agent is less than the recovery_chance metric:
-        if self.random.random(self) < self.recovery_chance:
+        if self.random.random() < self.recovery_chance:
             # Then the agent is SUSCEPTIBLE to infection
             self.state = State.SUSCEPTIBLE
             self.try_gain_resistance()
