@@ -19,7 +19,7 @@ def agent_portrayal(agent):
         State.SUSCEPTIBLE: "tab:green",
         State.RESISTANT: "tab:gray"
     }
-    return {"color": node_color_dict[agent.state], "size": 10}
+    return {"color": node_color_dict[agent.state], "size": 100}
 
 """Function to retrieve resistant to susceptible ratio.
 This function also displays the ratio amount and number of infected remaining."""
@@ -44,7 +44,7 @@ model_params = {
         label="Number of Agents",
         value=10,
         min=10,
-        max=100,
+        max=50,
         step=1
     ),
     "avg_node_degree": Slider(
@@ -62,38 +62,39 @@ model_params = {
         step=1
     ),
     "virus_spread_chance": Slider(
-        label="Virus Spread Chance",
-        value=0.4,
+        label="Infection Rate",
+        value=0.5,
         min=0.0,
         max=1.0,
         step=0.1
     ),
     "virus_check_frequency": Slider(
         label="Virus Check Frequency",
-        value=0.4,
+        value=0.5,
         min=0.0,
         max=1.0,
         step=0.1
     ),
     "recovery_chance": Slider(
-        label="Recovery Chance",
-        value=0.3,
+        label="Chance of Recovery",
+        value=0.5,
         min=0.0,
         max=1.0,
         step=0.1
     ),
     "gain_resistance_chance": Slider(
-        label="Gain Resistance Chance",
+        label="Chance of Gaining Resistance",
         value=0.5,
         min=0.0,
         max=1.0,
+        step=0.1
     ),
 }
 
 """Setup for the model process visualization."""
 def post_process_lineplot(ax):
     ax.set_ylim(ymin=0)
-    ax.set_ylabel("# people")
+    ax.set_ylabel("Number of Agents")
     ax.legend(bbox_to_anchor=(1.05, 1.0), loc="upper left")
 
 SpacePlot = make_space_component(agent_portrayal)
@@ -113,7 +114,7 @@ page = SolaraViz(
         get_resistant_susceptible_ratio
     ],
     model_params=model_params,
-    name="Virus Model"
+    name="SIR Virus Model"
 )
 """Initiating an instance of the page."""
 page 
