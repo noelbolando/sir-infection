@@ -35,8 +35,8 @@ class VirusAgent(Agent):
         self.recovery_chance = recovery_chance
         self.gain_resistance_chance = gain_resistance_chance
 
-    """Define how SUSCEPTIBLE agents become INFECTED"""
     def try_to_infect_neighbors(self):
+        """Define how SUSCEPTIBLE agents become INFECTED"""
         neighbors_nodes = self.model.grid.get_neighborhood(
             self.pos, include_center=False
         )
@@ -53,16 +53,16 @@ class VirusAgent(Agent):
             if self.random.random() < self.virus_spread_chance:
                 a.state = State.INFECTED
     
-    """Define how INFECTED agents become RESISTANT"""
     def try_gain_resistance(self):
+        """Define how INFECTED agents become RESISTANT"""
         # If the gain_resistance_chance of the INFECTED agent is 
         # less than the gain_resistance_chance metric
         if self.random.random() < self.gain_resistance_chance:
             # Then the agent is RESISTANT
             self.state = State.RESISTANT
     
-    """Define whether an agent is SUSCEPTIBLE or INFECTED based on recovery_chance metric"""
     def try_remove_infection(self):
+        """Define whether an agent is SUSCEPTIBLE or INFECTED based on recovery_chance metric"""
         # If the recovery_chance of the agent is less than the recovery_chance metric:
         if self.random.random() < self.recovery_chance:
             # Then the agent is SUSCEPTIBLE to infection
@@ -72,15 +72,15 @@ class VirusAgent(Agent):
             # Otherwise, the agent is INFECTED
             self.state = State.INFECTED
 
-    """Check to see if an INFECTED agent can become RESISTANT"""
     def try_check_situation(self):
+        """Check to see if an INFECTED agent can become RESISTANT"""
         if (self.random.random() < self.virus_check_frequency) and (
             self.state is State.INFECTED
         ):
             self.try_remove_infection()
     
-    """Define the steps for agents within the model"""
     def step(self):
+        """Define the steps for agents within the model"""
         # If the agent is INFECTED, they will try to infect their neighbors
         if self.state is State.INFECTED:
             self.try_to_infect_neighbors()

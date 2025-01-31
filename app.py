@@ -12,7 +12,7 @@ import solara
 
 from model import State, VirusOnNetwork, number_infected
 
-"""Define how the agents are portrayed."""
+# Define how the agents are portrayed.
 def agent_portrayal(agent):
     node_color_dict = {
         State.INFECTED: "tab:red",
@@ -21,9 +21,11 @@ def agent_portrayal(agent):
     }
     return {"color": node_color_dict[agent.state], "size": 100}
 
-"""Function to retrieve resistant to susceptible ratio.
-This function also displays the ratio amount and number of infected remaining."""
 def get_resistant_susceptible_ratio(model):
+    """
+    Function to retrieve resistant to susceptible ratio.
+    This function also displays the ratio amount and number of infected remaining.
+    """
     ratio = model.resistant_susceptible_ratio()
     ratio_text = r"$infty$" if ratio is math.inf else f"{ratio:.2f}"
     infected_text = str(number_infected(model))
@@ -33,7 +35,7 @@ def get_resistant_susceptible_ratio(model):
 
     )
 
-"""Define how the model parameters will be displayed."""
+# Define how the model parameters will be displayed.
 model_params = {
     "seed": {
         "type": "InputText",
@@ -91,7 +93,7 @@ model_params = {
     ),
 }
 
-"""Setup for the model process visualization."""
+# Setup for the model process visualization.
 def post_process_lineplot(ax):
     ax.set_ylim(ymin=0)
     ax.set_ylabel("Number of Agents")
@@ -105,7 +107,7 @@ StatePlot = make_plot_component(
 
 model1 = VirusOnNetwork()
 
-"""Setting up the page."""
+# Setting up the web page
 page = SolaraViz(
     model1,
     components=[
@@ -116,5 +118,6 @@ page = SolaraViz(
     model_params=model_params,
     name="SIR Virus Model"
 )
-"""Initiating an instance of the page."""
+
+# Initializing an instance of the web page
 page 
