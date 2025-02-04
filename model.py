@@ -9,19 +9,19 @@ import networkx as nx
 
 from agents import State, VirusAgent
 
-"""Generalized function to find the number of agents for each state."""
+# Generalized function to find the number of agents for each state.
 def number_state(model, state):
     return sum(1 for a in model.grid.get_all_cell_contents() if a.state is state)
 
-"""Specific function to find the number of INFECTED agents."""
+# Specific function to find the number of INFECTED agents.
 def number_infected(model):
     return number_state(model, State.INFECTED)
 
-"""Specific funtion to find the number of SUSCEPTIBLE agents."""
+# Specific funtion to find the number of SUSCEPTIBLE agents.
 def number_susceptible(model):
     return number_state(model, State.SUSCEPTIBLE)
 
-"""Specific function to find the number of RESISTANT agents."""
+# Specific function to find the number of RESISTANT agents.
 def number_resistant(model):
     return number_state(model, State.RESISTANT)
 
@@ -62,7 +62,7 @@ class VirusOnNetwork(Model):
             }
         )
     
-        """Create SUSCEPTIBLE agents."""
+        # Create SUSCEPTIBLE agents.
         for node in self.G.nodes():
             a = VirusAgent(
                 self,
@@ -73,27 +73,29 @@ class VirusOnNetwork(Model):
                 self.gain_resistance_chance
             )
         
-            """Add the SUSCEPTIBLE agents to the node."""
+            # Add the SUSCEPTIBLE agents to the model.
             self.grid.place_agent(a, node)
 
-        """Infect some of the agents added to the node."""
+        # Infect some of the agents added to the model.
         infected_nodes = self.random.sample(list(self.G), self.initial_outbreak_size)
-        # Randomly infect some of the agents based on the initial_outbreak_size
+        # Randomly infect some of the agents based on the initial_outbreak_size variable.
         for a in self.grid.get_cell_list_contents(infected_nodes):
             a.state = State.INFECTED
         
         self.running = True
         self.datacollector.collect(self)
     
-    """Calculate the R to S ratio."""
+    # Calculate the R to S ratio.
     def resistant_susceptible_ratio(self):
+        """Calculates the R to S ratio."""
         try:
             return number_state(self, State.RESISTANT) / number_state(self, State.SUSCEPTIBLE)
         except ZeroDivisionError:
             return math.inf
         
-    """Call the agent steps."""
+    # Define the agent steps and call them.
     def step(self):
+        """Call the agent steps."""
         self.agents.shuffle_do("step")
         # Collect data throughout the steps
         self.datacollector.collect(self)   
