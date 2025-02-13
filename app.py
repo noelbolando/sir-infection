@@ -17,7 +17,7 @@ def agent_portrayal(agent):
     node_color_dict = {
         State.INFECTED: "tab:red",
         State.SUSCEPTIBLE: "tab:green",
-        State.RESISTANT: "tab:gray"
+        State.RESISTANT: "tab:purple"
     }
     return {"color": node_color_dict[agent.state], "size": 100}
 
@@ -101,7 +101,7 @@ def post_process_lineplot(ax):
 
 SpacePlot = make_space_component(agent_portrayal)
 StatePlot = make_plot_component(
-    {"Infected": "tab:red", "Susceptible": "tab:green", "Resistant": "tab:gray"},
+    {"Infected": "tab:red", "Susceptible": "tab:green", "Resistant": "tab:purple"},
     post_process=post_process_lineplot
 )
 
