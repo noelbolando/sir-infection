@@ -98,4 +98,5 @@ class VirusOnNetwork(Model):
         """Call the agent steps."""
         self.agents.shuffle_do("step")
         # Collect data throughout the steps
-        self.datacollector.collect(self)   
+        self.datacollector.collect(self)
+        
