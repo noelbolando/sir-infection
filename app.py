@@ -2,15 +2,42 @@
 This file instantiates a web page using Solara.
 This makes it possible to interact with the model and display some cool visualizations.
 
-To initialize the app:
+*** How to Run: ***
+1. initialize mistral model with: 
+    ollama run mistral
+2. initialize solara app with:
     solara run app.py
 """
 
 import math
 from mesa.visualization import Slider, SolaraViz, make_plot_component, make_space_component
+import requests
 import solara
 
 from model import State, VirusOnNetwork, number_infected
+from control_agent import ControlAgent
+
+# Function to interact with Ollama LLM interaction logic
+def call_ollama(prompt: str) -> str:
+    """HTTP call request funtion for interacting with Ollama LLM"""
+    response = requests.post(
+        "http://localhost:11434/api/chat",
+        json={
+            "model": "mistral", # using mistral model
+            "messages": [
+                {
+                    "role": "system", 
+                    "content": "You are a helpful assistant for understanding and controlling an agent-based SIR virus model simulation."
+                },
+                {
+                    "role": "user", 
+                    "content": prompt
+                }
+            ],
+            "stream": False
+        }
+    )
+    return response.json()["message"]["content"]
 
 # Define how the agents are portrayed.
 def agent_portrayal(agent):
@@ -107,17 +134,40 @@ StatePlot = make_plot_component(
 
 model1 = VirusOnNetwork()
 
+# Setting up ControlAgent
+control_agent = ControlAgent(model1, llm_fn=call_ollama)
+user_query = solara.reactive("")
+agent_response = solara.reactive("")
+
 # Setting up the web page
-page = SolaraViz(
-    model1,
-    components=[
-        SpacePlot,
-        StatePlot,
-        get_resistant_susceptible_ratio
-    ],
-    model_params=model_params,
-    name="SIR Virus Model"
-)
+@solara.component
+def Page():
+    SolaraViz(
+        model1,
+        components=[
+            SpacePlot,
+            StatePlot,
+            get_resistant_susceptible_ratio
+        ],
+        model_params=model_params,
+        name="SIR Virus Model"
+    )
+
+# Add ControlAgent interface to Solara app
+@solara.component
+def ControlPanel():
+    solara.Markdown("### 🤖 Control Agent Interface")
+    solara.InputText(label="Ask something about the simulation:", value=user_query)
+
+    if solara.Button("Submit"):
+        response = control_agent.handle_query(user_query.value)
+        agent_response.set(response)
+
+    if agent_response.value:
+        solara.Markdown(f"**Response:** {agent_response.value}")
+
 
 # Initializing an instance of the web page
-page 
+@solara.component
+def Page(): 
+    ControlPanel() 
