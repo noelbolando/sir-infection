@@ -1,22 +1,25 @@
-# Infectious Virus - SIR Model #
+# Infectious Virus - SIR Model with LLM Compatability #
 This project explores how a virus spreads on a network.
 
-I undertook this project as a way to understand:
+Originally, I undertook this project as a way to understand:
 1. How a virus, or infection, spreads across a network
 2. How the mechanics of infectious diseaes can be modeled
 3. How to model such behavior following the SIR model, a common model used in epidemiology
 
 Note that this model does not explicitly look at any specific infectious disease spread although analogous parallels may be drawn between the two (patterns, amiright?)
 
+NEW: This model now contains an LLM "Control Agent" for querying the model, allowing users to "talk to the simulation."
+
 ## Project Details ##
-As you'll see, there are three files in this repo:
+There are four files in this repo:
 1. 'agents.py': this file defines the properties of agents. In the case of this project, this defines SUSCEPTIBLE, INFECTED, and RESISTANT agents. Agents have properties related to how the virus spreads, the chance of recovery, and the chance to gain resistance to the virus.
-2. 'app.py': using Solara, this file defines an interactive visualization tool so that users can toggle different agent properties to see how quickly infection spreads and if/how recovery occurs accross the population.
-3. 'model.py': this file defines the model itself and sets initial values for the properties of agents. SUSCEPTIBLE agents are created in this file, infection spreads to some of these agents, and the ratio of SUSCEPTIBLE to RESISTANT agents is determined.
+2. 'app.py': using Solara, this file defines an interactive visualization tool so that users can toggle different agent properties to see how quickly infection spreads and if/how recovery occurs accross the population. It also enables users to interact with a control agent to query the model for insights.
+3. 'control_agent.py': this file definse the ControlAgent class, allowing us to pass LLM interactive logic within our simulation. 
+4. 'model.py': this file defines the model itself and sets initial values for the properties of agents. SUSCEPTIBLE agents are created in this file, infection spreads to some of these agents, and the ratio of SUSCEPTIBLE to RESISTANT agents is determined.
 
 ## How to Use ##
 This is pretty simple for those new to Python:
-1. Clone all three files in this project.
+1. Clone the project directory.
 2. Make sure all your packages are installed. Especially:
 ```` $ pip install enum ````
 ```` $ pip install mesa ````
