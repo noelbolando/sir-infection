@@ -14,6 +14,7 @@ import math
 from mesa.visualization import Slider, SolaraViz, make_plot_component, make_space_component
 import requests
 import solara
+import threading
 
 from model import State, VirusOnNetwork, number_infected
 from control_agent import ControlAgent
@@ -32,16 +33,19 @@ logger = logging.getLogger(__name__)
 # Function to interact with Ollama LLM interaction logic
 def call_ollama(messages: list[dict]) -> str:
     """HTTP call request funtion for interacting with Ollama LLM"""
-    
-    response = requests.post(
-        "http://localhost:11434/api/chat",
-        json={
-            "model": "mistral", # using mistral model
-            "messages": messages,
-            "stream": False
-        }
-    )
-    return response.json()["message"]["content"]
+    try:
+        response = requests.post(
+            "http://localhost:11434/api/chat",
+            json={
+                "model": "mistral",
+                "messages": messages,
+                "stream": False
+            }
+        )
+        return response.json()["message"]["content"]
+    except Exception as e:
+        logger.error(f"LLM request failed: {e}")
+        return "Sorry, I couldn't reach the LLM."
 
 # Define how the agents are portrayed.
 def agent_portrayal(agent):
@@ -136,26 +140,11 @@ StatePlot = make_plot_component(
     post_process=post_process_lineplot
 )
 
+# Setting up Control Agent logic
 model1 = VirusOnNetwork()
-
-# Setting up ControlAgent
 control_agent = ControlAgent(model1, llm_fn=call_ollama)
-user_query = solara.reactive("")
-agent_response = solara.reactive("")
 
-# Setting up the web page
-page = SolaraViz(
-    model1,
-    components=[
-        SpacePlot,
-        StatePlot,
-        get_resistant_susceptible_ratio
-    ],
-    model_params=model_params,
-    name="SIR Virus Model"
-)
-
-# Add ControlAgent interface to Solara app
+# Add Control Agent interface to Solara app
 @solara.component
 def ControlPanel():
     query = solara.use_reactive("")
@@ -173,11 +162,10 @@ def ControlPanel():
             query.set("")
             loading.set(False)
 
-        import threading
         threading.Thread(target=run_llm).start()
 
     if loading.value:
-        solara.Markdown("Thinking...")
+        solara.Markdown("🤔 Thinking...")
         solara.ProgressLinear(value=None)
     else:
         for message in control_agent.get_conversation():
