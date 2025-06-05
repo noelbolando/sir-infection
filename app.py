@@ -9,6 +9,7 @@ This makes it possible to interact with the model and display some cool visualiz
     solara run app.py
 """
 
+import logging
 import math
 from mesa.visualization import Slider, SolaraViz, make_plot_component, make_space_component
 import requests
@@ -17,23 +18,26 @@ import solara
 from model import State, VirusOnNetwork, number_infected
 from control_agent import ControlAgent
 
+# Logger function for tracking Ollama response rate
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(message)s',
+    handlers=[
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
+
+
 # Function to interact with Ollama LLM interaction logic
-def call_ollama(prompt: str) -> str:
+def call_ollama(messages: list[dict]) -> str:
     """HTTP call request funtion for interacting with Ollama LLM"""
+    
     response = requests.post(
         "http://localhost:11434/api/chat",
         json={
             "model": "mistral", # using mistral model
-            "messages": [
-                {
-                    "role": "system", 
-                    "content": "You are a helpful assistant for understanding and controlling an agent-based SIR virus model simulation."
-                },
-                {
-                    "role": "user", 
-                    "content": prompt
-                }
-            ],
+            "messages": messages,
             "stream": False
         }
     )
@@ -140,34 +144,68 @@ user_query = solara.reactive("")
 agent_response = solara.reactive("")
 
 # Setting up the web page
-@solara.component
-def Page():
-    SolaraViz(
-        model1,
-        components=[
-            SpacePlot,
-            StatePlot,
-            get_resistant_susceptible_ratio
-        ],
-        model_params=model_params,
-        name="SIR Virus Model"
-    )
+page = SolaraViz(
+    model1,
+    components=[
+        SpacePlot,
+        StatePlot,
+        get_resistant_susceptible_ratio
+    ],
+    model_params=model_params,
+    name="SIR Virus Model"
+)
 
 # Add ControlAgent interface to Solara app
 @solara.component
 def ControlPanel():
-    solara.Markdown("### 🤖 Control Agent Interface")
-    solara.InputText(label="Ask something about the simulation:", value=user_query)
+    query = solara.use_reactive("")
+    response = solara.use_reactive("")
+    loading = solara.use_reactive(False)
 
-    if solara.Button("Submit"):
-        response = control_agent.handle_query(user_query.value)
-        agent_response.set(response)
+    solara.InputText(label="Ask something about the simulation:", value=query)
 
-    if agent_response.value:
-        solara.Markdown(f"**Response:** {agent_response.value}")
+    if solara.Button("Submit") and query.value.strip():
+        loading.set(True)
+
+        def run_llm():
+            new_response = control_agent.handle_query(query.value)
+            response.set(new_response)
+            query.set("")
+            loading.set(False)
+
+        import threading
+        threading.Thread(target=run_llm).start()
+
+    if loading.value:
+        solara.Markdown("Thinking...")
+        solara.ProgressLinear(value=None)
+    else:
+        for message in control_agent.get_conversation():
+            role = message["role"].capitalize()
+            content = message["content"]
+            if role == "User":
+                solara.Markdown(f"**You:** {content}")
+            elif role == "Assistant":
+                solara.Markdown(f"**LLM:** {content}")
 
 
 # Initializing an instance of the web page
 @solara.component
-def Page(): 
-    ControlPanel() 
+def Page():
+    solara.Title("SIR Model with LLM Control Agent")
+    with solara.ColumnsResponsive(12, large=[8,4]):
+        with solara.Column(style={"padding": "1em"}):
+            solara.Markdown("## 🧫 SIR Virus Simulation")
+            SolaraViz(
+                model1,
+                components=[
+                    SpacePlot,
+                    StatePlot,
+                    get_resistant_susceptible_ratio
+                ],
+                model_params=model_params,
+                name="SIR Virus Model"
+            )
+        with solara.Column(style={"padding": "1em"}):
+            solara.Markdown("## 🤖 Control Agent Panel")
+            ControlPanel()

@@ -21,6 +21,12 @@ class ControlAgent(Model):
     ):
         self.model = model
         self.llm_fn = llm_fn
+        self.history = [
+            {
+                "role": "system",
+                "content": "You are a helpful assistant for understanding and controlling an agent-based SIR virus model simulation."
+            }
+        ]
 
     # Function to gain model snapshot and agent states
     def get_model_snapshot(self):
@@ -38,16 +44,11 @@ class ControlAgent(Model):
         }
     
     # Function to handle user queries 
-    def handle_query(self, query: str) -> str:
-        model_state = self.get_model_snapshot()
-        prompt = (
-            "You are an AI control assistant for an agent-based SIR model of disease spread.\n"
-            "Your job is to interpret the model state and answer user questions.\n"
-            f"Model State (JSON):\n{json.dumps(model_state, indent=2)}\n"
-            f"User Question: {query}\n"
-            "Provide a concise and helpful answer."
-        )
-        try:
-            return self.llm_fn(prompt)
-        except Exception as e:
-            return f"Error querying LLM: {e}"
+    def handle_query(self, user_input: str) -> str:
+        self.history.append({"role": "user", "content": user_input})
+        response = self.llm_fn(self.history)
+        self.history.append({"role": "assistant", "content": response})
+        return response
+    
+    def get_conversation(self):
+        return self.history[1:]
