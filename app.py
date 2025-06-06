@@ -9,6 +9,7 @@ This makes it possible to interact with the model and display some cool visualiz
     solara run app.py
 """
 
+import json
 import logging
 import math
 from mesa.visualization import Slider, SolaraViz, make_plot_component, make_space_component
@@ -33,19 +34,16 @@ logger = logging.getLogger(__name__)
 # Function to interact with Ollama LLM interaction logic
 def call_ollama(messages: list[dict]) -> str:
     """HTTP call request funtion for interacting with Ollama LLM"""
-    try:
-        response = requests.post(
-            "http://localhost:11434/api/chat",
-            json={
-                "model": "mistral",
-                "messages": messages,
-                "stream": False
-            }
-        )
-        return response.json()["message"]["content"]
-    except Exception as e:
-        logger.error(f"LLM request failed: {e}")
-        return "Sorry, I couldn't reach the LLM."
+
+    response = requests.post(
+        "http://localhost:11434/api/chat",
+        json={
+            "model": "mistral",
+            "messages": messages,
+            "stream": False
+        }
+    )
+    return response.json()["message"]["content"]
 
 # Define how the agents are portrayed.
 def agent_portrayal(agent):
@@ -142,7 +140,10 @@ StatePlot = make_plot_component(
 
 # Setting up Control Agent logic
 model1 = VirusOnNetwork()
+# Setting up ControlAgent
 control_agent = ControlAgent(model1, llm_fn=call_ollama)
+user_query = solara.reactive("")
+agent_response = solara.reactive("")
 
 # Add Control Agent interface to Solara app
 @solara.component
