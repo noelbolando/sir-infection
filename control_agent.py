@@ -17,10 +17,10 @@ class ControlAgent(Model):
 
     def __init__(
             self, 
-            model, 
+            model_getter,
             llm_fn=None
     ):
-        self.model = model
+        self._get_model = model_getter
         self.llm_fn = llm_fn
         self.history = [
              {
@@ -31,28 +31,41 @@ class ControlAgent(Model):
  
     # Function to retrieve model information
     def get_model_snapshot(self):
-        infected = sum(1 for a in self.model.grid.get_all_cell_contents()
+        model = self._get_model()
+
+        infected = sum(1 for a in model.grid.get_all_cell_contents()
                        if a.state is State.INFECTED)
-        susceptible = sum(1 for a in self.model.grid.get_all_cell_contents() 
+        susceptible = sum(1 for a in model.grid.get_all_cell_contents() 
                         if a.state is State.SUSCEPTIBLE)
-        resistant = sum(1 for a in self.model.grid.get_all_cell_contents() 
+        resistant = sum(1 for a in model.grid.get_all_cell_contents() 
                         if a.state is State.RESISTANT)
-        ratio = self.model.resistant_susceptible_ratio()
+        ratio = model.resistant_susceptible_ratio()
 
         return (
-            f"The model has {self.model.num_nodes} agents. "
+            f"The model has {model.num_nodes} agents. "
             f"Currently, there are {infected} infected, {susceptible} susceptible, " 
             f"and {resistant} resistant agents. "
-            f"The infection rate is {self.model.virus_spread_chance}, "
-            f"and the recovery chance is {self.model.recovery_chance}. "
+            f"The infection rate is {model.virus_spread_chance}, "
+            f"and the recovery chance is {model.recovery_chance}. "
             f"The resistant-to-susceptible ratio is {'∞' if ratio == math.inf else round(ratio, 2)}. "
         )
 
     # Function to handle user queries 
     def handle_query(self, user_input: str) -> str:
-        self.history.append({"role": "user", "content": user_input})
+        context = self.get_model_snapshot()
+        self.history.append(
+            {
+                "role": "user", 
+                "content": f"{context}\n\nUser query: {user_input}"
+            }
+        )
         response = self.llm_fn(self.history)
-        self.history.append({"role": "assistant", "content": response})
+        self.history.append(
+            {
+                "role": "assistant", 
+                "content": response
+            }
+        )
         return response
     
     def get_conversation(self):

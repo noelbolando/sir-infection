@@ -34,16 +34,27 @@ logger = logging.getLogger(__name__)
 # Function to interact with Ollama LLM interaction logic
 def call_ollama(messages: list[dict]) -> str:
     """HTTP call request funtion for interacting with Ollama LLM"""
-
-    response = requests.post(
-        "http://localhost:11434/api/chat",
-        json={
-            "model": "mistral",
-            "messages": messages,
-            "stream": False
-        }
-    )
-    return response.json()["message"]["content"]
+    try:
+        logger.info("Sending messages to Ollama: %s", json.dumps(messages, indent=2))
+        response = requests.post(
+            "http://localhost:11434/api/chat",
+            json={
+                "model": "mistral",
+                "messages": messages,
+                "stream": False
+            }
+        )
+        response.raise_for_status()
+        logger.info("Received response: %s", response.json())
+        return response.json()["message"]["content"]
+    # Logger for debugging
+    except requests.exceptions.RequestException as e:
+        logger.error(f"LLM request failed: {e}")
+        return "⚠️ LLM request failed. Please check if `ollama run mistral` is active."
+    # Logger for debugging
+    except KeyError:
+        logger.error("Malformed response from LLM: %s", response.text)
+        return "⚠️ LLM responded, but in an unexpected format."
 
 # Define how the agents are portrayed.
 def agent_portrayal(agent):
@@ -138,16 +149,12 @@ StatePlot = make_plot_component(
     post_process=post_process_lineplot
 )
 
-# Setting up Control Agent logic
-model1 = VirusOnNetwork()
-# Setting up ControlAgent
-control_agent = ControlAgent(model1, llm_fn=call_ollama)
 user_query = solara.reactive("")
 agent_response = solara.reactive("")
 
 # Add Control Agent interface to Solara app
 @solara.component
-def ControlPanel():
+def ControlPanel(control_agent: ControlAgent):
     query = solara.use_reactive("")
     response = solara.use_reactive("")
     loading = solara.use_reactive(False)
@@ -182,11 +189,15 @@ def ControlPanel():
 @solara.component
 def Page():
     solara.Title("SIR Model with LLM Control Agent")
+
+    model_reactive = solara.use_reactive(VirusOnNetwork())
+
     with solara.ColumnsResponsive(12, large=[8,4]):
         with solara.Column(style={"padding": "1em"}):
             solara.Markdown("## 🧫 SIR Virus Simulation")
+
             SolaraViz(
-                model1,
+                model_reactive.value,
                 components=[
                     SpacePlot,
                     StatePlot,
@@ -197,4 +208,6 @@ def Page():
             )
         with solara.Column(style={"padding": "1em"}):
             solara.Markdown("## 🤖 Control Agent Panel")
-            ControlPanel()
+
+            control_agent = ControlAgent(lambda: model_reactive.value, llm_fn=call_ollama)
+            ControlPanel(control_agent=control_agent)
