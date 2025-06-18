@@ -33,6 +33,9 @@ class ControlAgent(Model):
     def get_model_snapshot(self):
         model = self._get_model()
 
+        # Print step number for debugging
+        print(f"[DEBUG] Model step count: {model.step}")
+
         infected = sum(1 for a in model.grid.get_all_cell_contents()
                        if a.state is State.INFECTED)
         susceptible = sum(1 for a in model.grid.get_all_cell_contents() 
@@ -52,21 +55,18 @@ class ControlAgent(Model):
 
     # Function to handle user queries 
     def handle_query(self, user_input: str) -> str:
-        context = self.get_model_snapshot()
-        self.history.append(
-            {
-                "role": "user", 
-                "content": f"{context}\n\nUser query: {user_input}"
-            }
-        )
+        self.history.append({"role": "user", "content": user_input})
+
+        # If user specifically asks for model state, insert the snapshot
+        if any(keyword in user_input.lower() for keyword in ["how many", "current state", "status", "infected", "resistant", "susceptible"]):
+                context = self.get_model_snapshot()
+        self.history.append({"role": "user", "content": f"[Model Status Update]\n{context}"})
+
         response = self.llm_fn(self.history)
-        self.history.append(
-            {
-                "role": "assistant", 
-                "content": response
-            }
-        )
+        self.history.append({"role": "assistant", "content": response})
+        
         return response
+
     
     def get_conversation(self):
         return self.history[1:]
