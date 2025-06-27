@@ -5,6 +5,7 @@ This file contains all the model classes needed for the SIR model.
 import math
 import mesa
 from mesa import Model
+from mesa.space import NetworkGrid
 import networkx as nx
 
 from agents import State, VirusAgent
